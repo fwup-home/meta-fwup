@@ -5,7 +5,9 @@ SECTION = "devel"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ef0220292b0cce0a53f5faff0d1f102a"
 
+
 DEPENDS = "flex-native gettext"
+
 
 SRC_URI = "https://github.com/martinh/libconfuse/releases/download/v${PV}/confuse-${PV}.tar.gz"
 
