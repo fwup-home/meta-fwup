@@ -14,6 +14,6 @@ SRC_URI[sha256sum] = "f1f326d9443103036d19c32d3f3efec3a85c3b081d99534463668d2999
 
 inherit autotools-brokensep lib_package gettext
 
-#BBCLASSEXTEND = "native nativesdk"
+BBCLASSEXTEND = "native nativesdk"
 
 S = "${WORKDIR}/confuse-${PV}"

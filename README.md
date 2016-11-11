@@ -1,9 +1,7 @@
 # fwup meta layer
 
 This is a Yocto meta layer for buiding `fwup` into Yocto projects.
-It is really close, but not quite right yet. Since I'm not a Yocto user myself,
-I'm not actively working on this. However, it seems close enough to provide a
-head start to anyone using Yocto that it's worth sharing.
+
 
 ## Usage
 
