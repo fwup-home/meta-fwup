@@ -8,8 +8,7 @@ DEPENDS = "libconfuse libarchive libsodium zlib pkgconfig-native"
 
 SRC_URI = "https://github.com/fhunleth/fwup/releases/download/v${PV}/${BPN}-${PV}.tar.gz"
 
-SRC_URI[md5sum] = "be6b31da55abea3d43ca9ea19fa640ff"
-SRC_URI[sha256sum] = "64a2967279eb9a11ade9350e53898cf49318e11f26d68f3f3ce28ed9ad7f455c"
+SRC_URI[sha256sum] = "20302dc96cef88438034e15551e178bb0652c28d99aa7ca5260100cb3bebbc2a"
 
 inherit autotools lib_package pkgconfig
 FILES_${PN} += "${datadir}/bash-completion/completions/fwup \
