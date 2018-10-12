@@ -2,8 +2,6 @@
 
 This is a Yocto meta layer for building `fwup` into Yocto projects.
 
-## I don't use Yocto. If you use it or there's a better location for this, please let me know
-
 ## Usage
 
 For `conf/bblayers.conf` you have to add
