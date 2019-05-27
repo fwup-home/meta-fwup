@@ -9,8 +9,8 @@ DEPENDS = "libconfuse libarchive libsodium zlib pkgconfig-native"
 SRC_URI = "git://github.com/fhunleth/fwup.git;protocol=https;"
 
 # Modify these as desired
-PV = "1.2.6"
-SRCREV = "7003efa9b17b7a8cadd82c2d818ce068f2ce5176"
+PV = "1.3.1"
+SRCREV = "2fe303a2849d9d9a80ec21c9d3adc74d73b4ae4f"
 
 S = "${WORKDIR}/git"
 
@@ -20,7 +20,10 @@ inherit autotools lib_package pkgconfig
 FILES_${PN} += "${datadir}/bash-completion/completions/fwup \
                ${bindir}/fwup \
 "
-PACKAGES = "${PN}-dev ${PN}-dbg ${PN}"
+
+FILES_${PN}-img2fwup = "${bindir}/img2fwup"
+
+PACKAGES = "${PN}-dev ${PN}-dbg ${PN}-img2fwup ${PN}"
 BBCLASSEXTEND = "native nativesdk"
 
 do_configure_append () {
