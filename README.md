@@ -2,6 +2,10 @@
 
 This is a Yocto meta layer for building `fwup` into Yocto projects.
 
+This layer depends on: 
+
+URI: https://github.com/openembedded/meta-openembedded.git layers: meta-oe branch: master
+
 ## Usage
 
 For `conf/bblayers.conf` you have to add

@@ -9,8 +9,8 @@ DEPENDS = "flex-native gettext"
 
 SRC_URI = "https://github.com/martinh/libconfuse/releases/download/v${PV}/confuse-${PV}.tar.gz"
 
-SRC_URI[md5sum] = "bf03099ef213647451c70e54ad4b6e81"
-SRC_URI[sha256sum] = "f1f326d9443103036d19c32d3f3efec3a85c3b081d99534463668d29992c4648"
+SRC_URI[md5sum] = "f590564c6ea4879db0c8f692bf12f42a"
+SRC_URI[sha256sum] = "3a59ded20bc652eaa8e6261ab46f7e483bc13dad79263c15af42ecbb329707b8"
 
 inherit autotools-brokensep lib_package gettext
 
