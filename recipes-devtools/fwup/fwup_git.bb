@@ -17,11 +17,11 @@ S = "${WORKDIR}/git"
 CFLAGS:prepend = "-I${S} "
 
 inherit autotools lib_package pkgconfig
-FILES_${PN} += "${D}/${datadir}/bash-completion/completions/fwup \
+FILES:${PN} += "${datadir}/bash-completion/completions/fwup \
                ${bindir}/fwup \
 "
 
-FILES_${PN}-img2fwup = "${bindir}/img2fwup"
+FILES:${PN}-img2fwup = "${bindir}/img2fwup"
 
 PACKAGES = "${PN}-dev ${PN}-dbg ${PN}-img2fwup ${PN}"
 BBCLASSEXTEND = "native nativesdk"
