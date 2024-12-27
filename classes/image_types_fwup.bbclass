@@ -39,7 +39,7 @@ FWUPVARS ?= "\
 IMAGE_TYPEDEP:fwup = "ext4 wic"
 
 FWUP_FILE ??= "${IMAGE_BASENAME}.${MACHINE}.fwup"
-FWUP_FILES ?= "${FWUP_FILE} ${IMAGE_BASENAME}.fwup"
+FWUP_FILES ?= "${FWUP_FILE} ${IMAGE_BASENAME}.fwup ${MACHINE}.fwup"
 FWUP_SEARCH_PATH ?= "${THISDIR}:${@':'.join('%s/fwup' % p for p in '${BBPATH}'.split(':'))}:${COREBASE}'.split(':'))}"
 FWUP_FULL_PATH = "${@fwup_search(d.getVar('FWUP_FILES').split(), d.getVar('FWUP_SEARCH_PATH')) or ''}"
 
