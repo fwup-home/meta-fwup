@@ -6,7 +6,7 @@ inherit image-artifact-names
 # the use of a wks template to avoid the user the needed of
 # providing one. It adds a small build time overhead but decreases
 # the complexity and maintainability.
-WKS_FILE = "sdimage-template.wks"
+WKS_FILE ?= "sdimage-template.wks"
 
 IMAGE_INSTALL:append = " fwup"
 
@@ -64,9 +64,13 @@ IMAGE_CMD:fwup () {
     # load additional variables for fwup purposes
     . $build_fwup/fwup.env
 
-    PSEUDO_UNLOAD=1 fwup -v -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
+    # Create a fwup firmware
+    fwup -q -v -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
+    # And create a fwup image from a fwup firmware file
+    fwup -q -v -t complete -a -d "$build_fwup/${IMAGE_BASENAME}.fwup" -i "$build_fwup/${IMAGE_BASENAME}.fw"
 
 	mv "$build_fwup/${IMAGE_BASENAME}.fw" "$out.fw"
+    mv "$build_fwup/${IMAGE_BASENAME}.fwup" "$out.fwup"
 
     cd ${IMGDEPLOYDIR}
     ln -sf ${IMAGE_NAME}.fw ${IMAGE_LINK_NAME}.fw
@@ -142,7 +146,9 @@ python do_fwup_conf () {
         "FWUP_BOOTLOADER_IMG": bootloader_img,
         "FWUP_BOOTLOADER_IMG_BLOCKS": calculate_size_blocks(d, bootloader_img),
         "FWUP_ROOTFS_IMG": rootfs_img,
-        "FWUP_ROOTFS_IMG_BLOCKS": calculate_size_blocks(d, rootfs_img)
+        "FWUP_ROOTFS_IMG_BLOCKS": calculate_size_blocks(d, rootfs_img),
+
+        "DEPLOY_DIR_IMAGE": d.getVar('DEPLOY_DIR_IMAGE')
     }
 
     with open(fwup_env_filename, 'w') as conf:
@@ -163,3 +169,9 @@ do_fwup_conf[cleandirs] = "${WORKDIR}/build-fwup"
 # do_fwup_conf[vardepsexclude] += "FWUP_META_CREATION_DATE"
 
 IMAGE_TYPES += " fwup"
+
+CONVERSIONTYPES:append = " fwup.qcow2"
+
+CONVERSION_CMD:fwup.qcow2 = "qemu-img convert -O qcow2 ${IMAGE_NAME}.${type} ${IMAGE_NAME}.${type}.qcow2"
+
+CONVERSION_DEPENDS_fwup.qcow2 = "qemu-system-native"
