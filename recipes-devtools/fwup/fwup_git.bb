@@ -27,5 +27,5 @@ PACKAGES = "${PN}-dev ${PN}-dbg ${PN}-img2fwup ${PN}"
 BBCLASSEXTEND = "native nativesdk"
 
 do_configure:append () {
-  ln -s ${S}/src/fwup.h2m ${WORKDIR}/build/src/fwup.h2m
+  ln -s ${S}/src/fwup.h2m ${B}/src/fwup.h2m
 }
