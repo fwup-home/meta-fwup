@@ -165,8 +165,8 @@ python do_fwup_conf () {
 }
 addtask do_fwup_conf after do_image_wic before do_image_fwup
 do_fwup_conf[cleandirs] = "${WORKDIR}/build-fwup"
-# do_fwup_conf[vardeps] += "${FWUPVARS}"
-# do_fwup_conf[vardepsexclude] += "FWUP_META_CREATION_DATE"
+do_fwup_conf[vardeps] += "${FWUPVARS}"
+do_fwup_conf[vardepsexclude] += "FWUP_META_CREATION_DATE"
 
 IMAGE_TYPES += " fwup"
 
