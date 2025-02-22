@@ -1,5 +1,10 @@
 inherit image-artifact-names
 
+# Enables firmware authentication using public/private key pair.
+FWUP_SIGN_ENABLE ?= "0"
+FWUP_PRIVATE_KEY_FILE ?= ""
+FWUP_PUBLIC_KEY_FILE ?= ""
+
 # This class relies on wic image class in order to create
 # images for bootloader and root partition without having to
 # dealing with files in this class. Here we are forcing
@@ -43,6 +48,9 @@ FWUP_FILES ?= "${FWUP_FILE} ${IMAGE_BASENAME}.fwup ${MACHINE}.fwup"
 FWUP_SEARCH_PATH ?= "${THISDIR}:${@':'.join('%s/fwup' % p for p in '${BBPATH}'.split(':'))}:${COREBASE}'.split(':'))}"
 FWUP_FULL_PATH = "${@fwup_search(d.getVar('FWUP_FILES').split(), d.getVar('FWUP_SEARCH_PATH')) or ''}"
 
+FWUP_SIGN = "--private-key-file ${FWUP_PRIVATE_KEY_FILE} --public-key-file ${FWUP_PUBLIC_KEY_FILE}"
+FWUP_SIGN_VERIFY = "--public-key-file ${FWUP_PUBLIC_KEY_FILE} -V"
+
 def fwup_search(files, search_path):
     for f in files:
         if os.path.isabs(f):
@@ -64,8 +72,12 @@ IMAGE_CMD:fwup () {
     # load additional variables for fwup purposes
     . $build_fwup/fwup.env
 
-    # Create a fwup firmware
-    fwup -q -v -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
+    # Create an fwup firmware
+    fwup -q -v ${FWUP_SIGN} -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
+    # Verify if it's ok
+    if [ "${FWUP_SIGN_ENABLE}" = "1" ]; then
+        fwup -q ${FWUP_SIGN_VERIFY} -i "$build_fwup/${IMAGE_BASENAME}.fw"
+    fi
     # And create a fwup image from a fwup firmware file
     fwup -q -v -t complete -a -d "$build_fwup/${IMAGE_BASENAME}.fwup" -i "$build_fwup/${IMAGE_BASENAME}.fw"
 
@@ -116,6 +128,7 @@ def calculate_size_blocks(d, image_file):
 python do_fwup_conf () {
     fwupvars = d.getVar('FWUPVARS')
     if not fwupvars:
+        bb.fatal("FWUPVARS not defined")
         return
 
     build_wic = os.path.join(d.getVar('WORKDIR'), 'build-wic')
@@ -163,10 +176,25 @@ python do_fwup_conf () {
 
     conf.close()
 }
+
+python do_check_key_pair() {
+    priv_key = d.getVar('FWUP_PRIVATE_KEY_FILE')
+    pub_key = d.getVar('FWUP_PUBLIC_KEY_FILE')
+    sign = d.getVar('FWUP_SIGN_ENABLE') == '1'
+
+    if sign and not os.path.isfile(priv_key):
+        bb.fatal(f"Private key {priv_key} not found")
+    if sign and not os.path.isfile(pub_key):
+        bb.fatal(f"Public key {pub_key} not found")
+}
+
 addtask do_fwup_conf after do_image_wic before do_image_fwup
 do_fwup_conf[cleandirs] = "${WORKDIR}/build-fwup"
 do_fwup_conf[vardeps] += "${FWUPVARS}"
 do_fwup_conf[vardepsexclude] += "FWUP_META_CREATION_DATE"
+
+addtask do_check_key_pair after do_image_wic before do_image_fwup
+do_check_key_pair[vardeps] += "FWUP_SIGN_ENABLE FWUP_PRIVATE_KEY_FILE FWUP_PUBLIC_KEY_FILE"
 
 IMAGE_TYPES += " fwup"
 
