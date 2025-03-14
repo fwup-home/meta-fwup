@@ -198,8 +198,10 @@ do_check_key_pair[vardeps] += "FWUP_SIGN_ENABLE FWUP_PRIVATE_KEY_FILE FWUP_PUBLI
 
 IMAGE_TYPES += " fwup"
 
-CONVERSIONTYPES:append = " fwup.qcow2"
+CONVERSIONTYPES:append = " fwup.qcow2 fwup.bmap"
 
 CONVERSION_CMD:fwup.qcow2 = "qemu-img convert -O qcow2 ${IMAGE_NAME}.${type} ${IMAGE_NAME}.${type}.qcow2"
+CONVERSION_CMD:fwup.bmap = "bmaptool create ${IMAGE_NAME}.${type} -o ${IMAGE_NAME}.${type}.bmap"
 
 CONVERSION_DEPENDS_fwup.qcow2 = "qemu-system-native"
+CONVERSION_DEPENDS_fwup.bmap = "bmaptool-native"
