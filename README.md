@@ -62,3 +62,62 @@ with the right parameters. Also the variables `FWUP_PRIVATE_KEY_FILE` and `FWUP_
 have to point to the correct location of private and public key files.
 
 One way to create a key pair is using the command `fwup -g`. However, others methods also exist.
+
+
+## Flashing images
+
+In order to flash an image to a bootable device, it's possible to use either fwup or bmaptools.
+
+Make sure you have write access to the bootable device before executing the below commands.
+
+### fwup
+
+Update your local.conf file with:
+
+```
+IMAGE_FSTYPES += "fwup"
+```
+
+Get an image first:
+
+```
+bitbake fwup-native -caddto_recipe_sysroot
+```
+
+Call fwup-native:
+
+```
+oe-run-native fwup-native \
+  fwup -a -d /dev/sdc -i myfirmware.fw -t complete \
+  -i tmp/deploy/images/raspberrypi5/image.rootfs.fwup
+```
+
+### bmaptools
+
+Update your local.conf file with:
+
+```
+IMAGE_FSTYPES += "fwup fwup.bmap"
+```
+
+Get an image rebuild:
+
+```
+bitbake image
+```
+
+Add bmaptool-native to sysroot:
+
+```
+bitbake bmaptool-native -caddto_recipe_sysroot
+```
+
+Call bmaptool-native:
+
+```
+oe-run-native bmaptool-native bmaptool copy \
+ tmp/deploy/images/raspberrypi5/image.rootfs.fwup \
+ /dev/sdc
+```
+
+For more details, check the Yocto's documentation about [Flashing Images Using bmaptool](https://docs.yoctoproject.org/5.0.7/dev-manual/bmaptool.html).
