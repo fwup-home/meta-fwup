@@ -12,8 +12,6 @@ SRC_URI = "git://github.com/fhunleth/fwup.git;protocol=https;branch=main;"
 PV = "1.13.2"
 SRCREV = "3ad2e8ff9a359c66eda7c16497898f68464c1f62"
 
-S = "${WORKDIR}/git"
-
 CFLAGS:prepend = "-I${S} "
 
 inherit autotools lib_package pkgconfig

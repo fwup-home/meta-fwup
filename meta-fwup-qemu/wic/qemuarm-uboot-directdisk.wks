@@ -1,0 +1,2 @@
+part /boot --source bootimg-partition --ondisk vda --fstype=vfat --label boot --active --align 4096
+part / --source rootfs --ondisk vda --fstype=ext4 --label platform --align 4096

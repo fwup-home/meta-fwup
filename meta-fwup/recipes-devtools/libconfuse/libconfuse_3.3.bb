@@ -16,4 +16,4 @@ inherit autotools-brokensep lib_package gettext
 
 BBCLASSEXTEND = "native nativesdk"
 
-S = "${WORKDIR}/confuse-${PV}"
+S = "${UNPACKDIR}/confuse-${PV}"
