@@ -62,18 +62,23 @@ def fwup_search(files, search_path):
                 return searched
 
 IMAGE_CMD:fwup () {
-	out="${IMGDEPLOYDIR}/${IMAGE_NAME}"
-	build_fwup="${WORKDIR}/build-fwup"
+    out="${IMGDEPLOYDIR}/${IMAGE_NAME}"
+    build_fwup="${WORKDIR}/build-fwup"
     fwup="${FWUP_FULL_PATH}"
-	if [ -z "$fwup" ]; then
-		bbfatal "No fwup files from FWUP_FILES were found: ${FWUP_FILES}. Please set FWUP_FILE or FWUP_FILES appropriately."
-	fi
+    fwup_sign_args=""
+    if [ -z "$fwup" ]; then
+        bbfatal "No fwup files from FWUP_FILES were found: ${FWUP_FILES}. Please set FWUP_FILE or FWUP_FILES appropriately."
+    fi
+
+    if [ "${FWUP_SIGN_ENABLE}" = "1" ]; then
+        fwup_sign_args="${FWUP_SIGN}"
+    fi
 
     # load additional variables for fwup purposes
     . $build_fwup/fwup.env
 
     # Create an fwup firmware
-    fwup -q -v ${FWUP_SIGN} -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
+    fwup -q -v ${fwup_sign_args} -c -o "$build_fwup/${IMAGE_BASENAME}.fw" -f "$fwup"
     # Verify if it's ok
     if [ "${FWUP_SIGN_ENABLE}" = "1" ]; then
         fwup -q ${FWUP_SIGN_VERIFY} -i "$build_fwup/${IMAGE_BASENAME}.fw"
@@ -81,7 +86,7 @@ IMAGE_CMD:fwup () {
     # And create a fwup image from a fwup firmware file
     fwup -q -v -t complete -a -d "$build_fwup/${IMAGE_BASENAME}.fwup" -i "$build_fwup/${IMAGE_BASENAME}.fw"
 
-	mv "$build_fwup/${IMAGE_BASENAME}.fw" "$out.fw"
+    mv "$build_fwup/${IMAGE_BASENAME}.fw" "$out.fw"
     mv "$build_fwup/${IMAGE_BASENAME}.fwup" "$out.fwup"
 
     cd ${IMGDEPLOYDIR}
