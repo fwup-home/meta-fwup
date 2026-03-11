@@ -9,6 +9,8 @@ machines:
 
 Also a standard wic definition for generate fwup firmware image.
 
+The fwup configuration files are compatible with raspberrypi standard bootloader.
+
 ## Dependencies:
 
 This layer depends on: 
