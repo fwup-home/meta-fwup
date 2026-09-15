@@ -1,0 +1,17 @@
+header:
+  version: 14
+
+repos:
+  meta-qemu-bsp:
+    url: https://github.com/meta-erlang/meta-qemu-bsp
+    path: layers/meta-qemu-bsp
+    branch: master
+
+  meta-fwup-qemu:
+    layers:
+      meta-fwup-qemu:
+
+local_conf_header:
+    fwup support for qemu: |
+      IMAGE_CLASSES += "image_types_fwup"
+      IMAGE_FSTYPES = "fwup.qcow2"

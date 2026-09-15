@@ -1,0 +1,12 @@
+header:
+  version: 14
+  includes:
+  - test/kas/raspberrypi4-64.yml
+
+local_conf_header:
+  wifi: |
+    LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
+    DISTRO_FEATURES:append = " wifi"
+
+target:
+  - core-image-full-cmdline

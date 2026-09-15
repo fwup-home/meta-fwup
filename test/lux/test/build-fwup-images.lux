@@ -1,0 +1,66 @@
+[doc]
+Build and inspect fwup firmware files
+
+For each machine, build the respective fw image and check if
+metadata are right.
+
+[enddoc]
+
+[include ../support/luxinc/utils.luxinc]
+[include ../support/luxinc/kas.luxinc]
+
+[global MACHINES=qemuarm64-uboot qemuarm-uboot raspberrypi4-64]
+[global IMAGE=core-image-full-cmdline]
+
+[shell cmd]
+    [loop machine $MACHINES]
+        [invoke prepare-fwup $machine $WORKDIR $KEYS_DIR $FW_DIR]
+        [progress Build fwup for $machine]
+
+        [invoke kas-shell $WORKDIR $machine]
+
+        # load additional environment variables for fwup tooling
+        """!
+        export \
+        FWUP_PRIVATE_KEY_FILE="${KEYS_DIR}/fwup-key.priv" \
+        FWUP_PUBLIC_KEY_FILE="${KEYS_DIR}/fwup-key.pub" \
+        BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS} FWUP_PRIVATE_KEY_FILE FWUP_PUBLIC_KEY_FILE"
+        """
+        [invoke ok]
+
+        !bitbake -c cleansstate ${IMAGE}
+        [invoke wait-build-ok]
+
+        !bitbake ${IMAGE}
+        [invoke wait-build-ok]
+
+        !bitbake fwup-native -caddto_recipe_sysroot
+        [invoke wait-build-ok]
+
+        !bitbake-getvar --value -r ${IMAGE} DEPLOY_DIR_IMAGE
+        ?(/.*)$
+        [local DEPLOY_DIR_IMAGE=$1]
+        [invoke ok]
+
+        !bitbake-getvar --value -r ${IMAGE} IMAGE_LINK_NAME
+        ?(${IMAGE}-.*)
+        [local IMAGE_LINK_NAME=$1]
+        [invoke ok]
+        
+        !oe-run-native fwup-native fwup -i ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw -V -p ${KEYS_DIR}/fwup-key.pub
+        ?^Valid archive with a good signature$
+        [invoke ok]
+
+        !oe-run-native fwup-native fwup --metadata -i ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw
+        ?^meta-platform="poky-${machine}.*"$
+        [invoke ok]
+        
+        [progress fwup for $machine :OK]
+        
+        !exit
+        [invoke ok]
+    [endloop]
+
+[cleanup]
+    !rm -rf ${KEYS_DIR}
+    [invoke ok]

@@ -1,0 +1,25 @@
+
+[macro kas-prepare-env]
+    """!
+    export \
+      NO_COLOR=1
+    """
+    [invoke ok]
+[endmacro]
+
+[macro kas-shell workdir config]
+    [invoke kas-prepare-env]
+    [timeout 120]
+    [my tmp=$LUX_FAIL_PATTERN]
+    [doc Starting kas-shell $config]
+    !make -C $workdir shell-$config $KAS_SHELL_UPDATE
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?builder
+    # set the expected PS1 instead kas shell PS1
+    !export PS1=SH-PROMPT:
+    [invoke ok]
+    -$tmp
+    [timeout]
+[endmacro]

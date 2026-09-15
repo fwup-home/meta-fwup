@@ -15,3 +15,5 @@ base layer for fwup usage with Yocto Project
 - meta-fwup-raspberry: fwup and wic definitions plus bbappend for recipes. This is only needed if your are building raspberrypi machines type
 
 Please, consult the [meta-fwup README](meta-fwup/README.md) file for more details about fwup integration for Yocto Project.
+
+There is also a _test_ framework (helper Makefiles, KAS fragments, and test scripts) for integration tests.

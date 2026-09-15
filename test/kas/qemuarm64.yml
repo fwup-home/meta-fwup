@@ -1,0 +1,8 @@
+header:
+  version: 14
+  includes:
+  - test/kas/include/fwup-demo-base.yml
+  - test/kas/include/fwup.yml
+  - test/kas/include/qemu.yml
+
+machine: qemuarm64-uboot

@@ -1,0 +1,7 @@
+header:
+  version: 14
+  includes:
+  - test/kas/qemuarm.yml
+
+target:
+  - core-image-full-cmdline

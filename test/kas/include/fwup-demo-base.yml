@@ -1,0 +1,66 @@
+header:
+  version: 14
+
+distro: poky
+
+repos:
+  openembedded-core:
+    url: https://git.openembedded.org/openembedded-core
+    path: layers/openembedded-core
+    branch: master
+    layers:
+      meta:
+
+  bitbake:
+    url: https://git.openembedded.org/bitbake
+    path: layers/bitbake
+    branch: master
+    layers:
+      bitbake: disabled
+
+  meta-yocto:
+    url: https://git.yoctoproject.org/meta-yocto
+    path: layers/meta-yocto
+    branch: master
+    layers:
+      meta-poky:
+      meta-yocto-bsp:
+
+  meta-openembedded:
+    url: http://git.openembedded.org/meta-openembedded
+    path: layers/meta-openembedded
+    branch: master
+    layers:
+      meta-oe:
+
+  meta-fwup:
+    layers:
+      meta-fwup:
+
+local_conf_header:
+  base: |
+    BB_HASHSERVE_DB_DIR = "${SSTATE_DIR}"
+    PACKAGE_CLASSES = "package_ipk"
+    INIT_MANAGER = "systemd"
+
+  enable buildhistory: |
+    USER_CLASSES ?= "buildhistory"
+    BUILDHISTORY_COMMIT = "1"
+
+  easy debug:
+    EXTRA_IMAGE_FEATURES ?= "allow-empty-password allow-root-login empty-root-password post-install-logging"
+
+  connman remove unused features: |
+    PACKAGECONFIG:remove:pn-connman = "3g bluez wispr"
+
+  connman with iwd support: |
+    WIRELESS_DAEMON = "iwd"
+
+  remove unneeded distro and machine features: |
+    DISTRO_FEATURES:remove = "3g x11 wayland vulkan pulseaudio gobject-introspection-data bluetooth alsa nfs nfc opengl"
+    MACHINE_FEATURES:remove = "alsa bluetooth qemu-usermode"
+
+    IMAGE_FEATURES:remove = "splash"
+
+target:
+  - core-image-full-cmdline

@@ -1,0 +1,145 @@
+[global QEMU-PROMPT=root@.*:.*# ]
+[global QEMU_MONITOR_PROMPT=^\(qemu\)]
+
+[global QEMU_INSTANCE_IP=127.0.0.1]
+
+[global KEYS_DIR=/build/keys]
+[global FW_DIR=/build/fw]
+
+[macro docker-ok]
+    [timeout 10]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?root@
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?root@
+    -$tmp
+    [timeout]
+[endmacro]
+
+[macro qemu-ok]
+    [timeout 10]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?${QEMU-PROMPT}
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?${QEMU-PROMPT}
+    -$tmp
+    [timeout]
+[endmacro]
+
+[macro qemu-system-reset]
+    [timeout 10]
+    !${_CTRL_A_}c
+    ?$QEMU_MONITOR_PROMPT
+    !system_reset
+    ?$QEMU_MONITOR_PROMPT
+    !${_CTRL_A_}c
+    [timeout]
+[endmacro]
+
+[macro wait-login-ok machine]
+    [timeout 50]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?^Poky \(Yocto Project Reference Distro\).*
+    ?^Type 'root' to login
+    ?^${MACHINE} login:
+    -$tmp
+    [timeout 10]
+    !root
+    ?${QEMU-PROMPT}
+    [timeout]
+    !uptime
+    [invoke qemu-ok]
+[endmacro]
+
+[macro check-exitcode code]
+    ?SH-PROMPT:
+    !echo ==$$?==
+    ?==${code}==
+    ?SH-PROMPT:
+[endmacro]
+
+[macro wait-build-ok]
+    [timeout]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?SH-PROMPT:
+    [timeout 10]
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
+    -$tmp
+    [timeout]
+[endmacro]
+
+[macro build-ok]
+    [timeout 10]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?SH-PROMPT:
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
+    -$tmp
+    [timeout]
+[endmacro]
+
+[macro ok]
+    [timeout 10]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?SH-PROMPT:
+    -==[1-9][0-9]*==
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
+    -$tmp
+    [timeout]
+[endmacro]
+
+[macro not-ok]
+    [my tmp=$LUX_FAIL_PATTERN]
+    ?SH-PROMPT:
+    -==0==
+    !echo ==$$?==
+    ?==[1-9][0-9]*==
+    ?SH-PROMPT:
+    -$tmp
+[endmacro]
+
+[macro prepare-fwup machine workdir keys_dir fw_dir]
+    [shell prepare-fwup]
+        [progress Preparing native fwup]
+
+        [invoke kas-shell $workdir $machine]
+
+        !bitbake -c cleansstate fwup-native
+        [invoke wait-build-ok]
+
+        !bitbake fwup-native
+        [invoke wait-build-ok]
+
+        !bitbake fwup-native -caddto_recipe_sysroot
+        [invoke wait-build-ok]
+
+        [progress clean up fw images and keys]
+        !rm -rf /build/fwup-key.* ${keys_dir} ${fw_dir}
+        [invoke ok]
+
+        !oe-run-native fwup-native fwup -g
+        ?^Firmware signing keys created and saved
+        [invoke ok]
+
+        !mkdir -p ${keys_dir}
+        [invoke ok]
+
+        !mv /build/fwup-key.* ${keys_dir}
+        [invoke ok]
+
+        [progress fwup public and private keys :OK]
+
+        !exit
+        [invoke ok]
+[endmacro]

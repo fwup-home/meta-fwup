@@ -1,0 +1,163 @@
+[doc]
+Build a fwup firmware and run update A/B test
+
+This test exercises a full A/B update using fwup on QEMU instance. It starts
+inspecting if QEMU instance has booted with the right partition. Then,
+it updates partition B and reboots QEMU instance. When the QEMU instance
+is back online, the test inspects the current partition and calls fwup to
+update the B partition. Then, the test writes new fw image into partition A,
+QEMU instance reboots again. As last step, a check is done in order to verify
+if the current partition points to A.
+[enddoc]
+
+[include ../support/luxinc/utils.luxinc]
+[include ../support/luxinc/kas.luxinc]
+
+[global MACHINE=qemuarm64-uboot]
+[global IMAGE=core-image-full-cmdline]
+
+[global FWUP_META_VERSION_A=1.0.1]
+[global FWUP_META_VERSION_B=1.0.2]
+
+[shell build]
+    [invoke prepare-fwup $MACHINE $WORKDIR $KEYS_DIR $FW_DIR]
+
+    [progress Build fwup for $MACHINE]
+
+    [invoke kas-shell $WORKDIR $MACHINE]
+
+    # load additional environment variables for fwup tooling
+    """!
+    export \
+    FWUP_PRIVATE_KEY_FILE="${KEYS_DIR}/fwup-key.priv" \
+    FWUP_PUBLIC_KEY_FILE="${KEYS_DIR}/fwup-key.pub" \
+    BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS} FWUP_PRIVATE_KEY_FILE FWUP_PUBLIC_KEY_FILE"
+    """
+    [invoke ok]
+
+    !mkdir -p ${FW_DIR}
+    [invoke ok]
+
+    !bitbake fwup-native -caddto_recipe_sysroot
+    [invoke wait-build-ok]
+
+    !bitbake -c cleansstate ${IMAGE}
+    [invoke wait-build-ok]
+
+    !echo 'FWUP_META_VERSION = "${FWUP_META_VERSION_A}"' > conf/site.conf
+    [invoke ok]
+
+    !bitbake ${IMAGE}
+    [invoke wait-build-ok]
+
+    !bitbake-getvar --value -r ${IMAGE} DEPLOY_DIR_IMAGE
+    ?(/.*)$
+    [local DEPLOY_DIR_IMAGE=$1]
+    [invoke ok]
+
+    !bitbake-getvar --value -r ${IMAGE} IMAGE_LINK_NAME
+    ?(${IMAGE}-.*)
+    [local IMAGE_LINK_NAME=$1]
+    [invoke ok]
+
+    !oe-run-native fwup-native fwup --metadata -i ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw
+    ?^meta-version=${FWUP_META_VERSION_A}$
+    [invoke ok]
+
+    !cp ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw ${FW_DIR}/${IMAGE_LINK_NAME}_A.fw
+    [invoke ok]
+
+    !echo 'FWUP_META_VERSION = "${FWUP_META_VERSION_B}"' > conf/site.conf
+    [invoke ok]
+
+    !bitbake ${IMAGE}
+    [invoke wait-build-ok]
+
+    !bitbake-getvar --value -r ${IMAGE} DEPLOY_DIR_IMAGE
+    ?(/.*)$
+    [local DEPLOY_DIR_IMAGE=$1]
+    [invoke ok]
+
+    !bitbake-getvar --value -r ${IMAGE} IMAGE_LINK_NAME
+    ?(${IMAGE}-.*)
+    [local IMAGE_LINK_NAME=$1]
+    [invoke ok]
+
+    !oe-run-native fwup-native fwup --metadata -i ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw
+    ?^meta-version=${FWUP_META_VERSION_B}$
+    [invoke ok]
+    
+    !cp ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.fw ${FW_DIR}/${IMAGE_LINK_NAME}_B.fw
+    [invoke ok]
+    [progress fwup images for $MACHINE :OK]
+
+    !exit
+    [invoke ok]
+
+[shell runqemu]
+    [progress running A/B update $MACHINE]
+
+    [invoke kas-shell $WORKDIR $MACHINE]
+
+    !runqemu $IMAGE nographic novga slirp serialstdio wic.qcow2 qemuparams="-pidfile /build/qemu.pid" bootparams="printk.time=1"
+    [invoke wait-login-ok $MACHINE]
+
+    [progress inspecting partition A]
+    -nerves_fw_active=b
+    !fw_printenv nerves_fw_active nerves_fw_validated nerves_fw_booted
+    ?nerves_fw_active=a
+    -
+    ?nerves_fw_booted=1
+    [invoke qemu-ok]
+
+[shell docker]
+    !docker exec -ti fwup-demo /bin/bash
+    [invoke docker-ok]
+
+    [progress sending fw and updating B]
+    !cat /build/fw/${IMAGE}-${MACHINE}.rootfs_A.fw | ssh \
+        -o StrictHostKeyChecking=no -p 2222 root@$QEMU_INSTANCE_IP 'fwup -v -a -U -d /dev/vda -t upgrade.b'
+    ?fwup: Upgrading partition B
+    ?Success!
+    [invoke docker-ok]
+
+[shell runqemu]
+    [invoke qemu-system-reset]
+
+    [invoke wait-login-ok $MACHINE]
+
+    [progress checking partition B]
+    -nerves_fw_active=a
+    !fw_printenv nerves_fw_active nerves_fw_validated nerves_fw_booted
+    ?nerves_fw_active=b
+    -
+    ?nerves_fw_booted=1
+    [invoke qemu-ok]
+
+[shell docker]
+    [progress sending fw and updating A]
+    !cat /build/fw/${IMAGE}-${MACHINE}.rootfs_B.fw | ssh \
+        -o StrictHostKeyChecking=no -p 2222 root@$QEMU_INSTANCE_IP 'fwup -v -a -U -d /dev/vda -t upgrade.a'
+    ?fwup: Upgrading partition A
+    ?Success!
+    [invoke docker-ok]
+
+[shell runqemu]
+    [invoke qemu-system-reset]
+
+    [invoke wait-login-ok $MACHINE]
+
+    [progress checking partition A]
+    -nerves_fw_active=b
+    !fw_printenv nerves_fw_active nerves_fw_validated nerves_fw_booted
+    ?nerves_fw_active=a
+    -
+    ?nerves_fw_booted=1
+    [invoke qemu-ok]
+
+[shell docker]
+    !kill $(cat  /build/qemu.pid)
+    [invoke docker-ok]
+
+    !exit
+    [invoke ok]

@@ -1,0 +1,12 @@
+header:
+  version: 14
+
+local_conf_header:
+  fwup support: |
+    IMAGE_CLASSES += "image_types_fwup"
+    IMAGE_FSTYPES = "fwup fwup.bmap"
+
+  enable signed fwup images: |
+    # private and public key will be create
+    # when needed
+    FWUP_SIGN_ENABLE = "1"

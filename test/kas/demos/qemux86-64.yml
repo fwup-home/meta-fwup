@@ -1,0 +1,7 @@
+header:
+  version: 14
+  includes:
+  - test/kas/qemux86-64.yml
+
+target:
+  - core-image-full-cmdline

@@ -1,0 +1,13 @@
+# Default config file when no architecture or host specific file is found
+# It may be included by other config files if desired
+# [config var=KAS_SHELL_UPDATE=UPDATE=1]
+[config var=KAS_SHELL_UPDATE=UPDATE=0]
+# [config var=YOCTO_RELEASE=master]
+# [config var=YOCTO_DIR=/data-work/yocto]
+# [config var=KAS=$HOME/work/opensource/kas/kas-container]
+# [config var=RUN_KAS=run-kas]
+[config var=WORKDIR=../..]
+[config case_timeout=21600000]
+[config suite_timeout=infinity]
+[config timeout=14400000]
+[config progress=summary]

@@ -1,0 +1,27 @@
+header:
+  version: 14
+
+repos:
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi.git
+    path: layers/meta-raspberrypi
+    branch: master
+
+  meta-fwup-raspberrypi:
+    layers:
+      meta-fwup-raspberrypi:
+
+local_conf_header:
+  raspberrypi: |
+    DISABLE_SPLASH = "1"
+    VIDEO_CAMERA = "0"
+    DISABLE_RPI_BOOT_LOGO = "1"
+    #RPI_USE_U_BOOT = "1"
+    ENABLE_SPI_BUS = "1"
+    ENABLE_I2C = "1"
+    ENABLE_UART = "1"
+    IMAGE_FEATURES:remove = "splash"
+    IMAGE_INSTALL:append = " kernel-image kernel-devicetree"
+    IMAGE_FSTYPES:remove = " rpi-sdimg"
+
+    MACHINE_FEATURES:remove = "vc4graphics"
